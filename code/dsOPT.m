@@ -37,14 +37,14 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 30;
+s = 40;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(i) = rand()/10;
+    x0(i) = rand()/3;
 end
 for i = 1:gccSize
     r0(i) = rand()/100;
@@ -55,10 +55,11 @@ edgelist = table2array(GCC.Edges);
 m = numedges(GCC);
 nn = numnodes(GCC);
 %randomly choose 1/5 edges as candidate set
-q = floor(m/5);
+constraint = 2;
+q=floor(m/5);
 qidx = randsample(m, q);
 Q = edgelist(qidx, :);
-k = min(q, 20);
+k = min(q, 100);
 %matrices
 A = adjacency(G,'weighted');
 betaList = beta* ones(nn,1);
@@ -69,10 +70,18 @@ X0 = diag(x0);
 R0 = diag(r0);
 I = eye(nn);
 M = I - D + (I-X0-R0)*B*A;
+
+disp("%%%%%%%upper bound%%%%%%")
+disp("original:")
+sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
+disp(sigmahat);
+
 % choose deleting set using the surrogate
 P=zeros(k,3);
+disp("%%%%%%%%%%%%%%%%%%%%%%%%%")
+disp("greedy:")
 for i = 1:k
-    disp(i)
+    %disp(i)
     %iterate over all remaining candidates
     curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
     for e = 1:q
@@ -87,13 +96,42 @@ for i = 1:k
             Mc = Mt;
         end
     end
-    disp(sigmahat);
+    %disp(sigmahat);
     P(i,:) = Q(choice,:);
+    %disp(choice)
     Q(choice,:)=[];
     q=q-1;
     M = Mc;
 end
-sigmahat = ones(1,nn)* (M-D-I) * ((I-M)\x0);
+sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
+disp(sigmahat);
+
+%to compare with random choices
+disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+disp("random choices:");
+M = I - D + (I-X0-R0)*B*A;
+P2=zeros(k,3);
+Q2=edgelist(qidx, :);
+for i = 1:k
+    %disp(i)
+    %iterate over all remaining candidates
+    %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
+    e =randi(q,1);
+    %disp(e)
+    
+    Ainc = zeros(nn,nn);
+    Ainc(Q2(e,1), Q2(e,2))= -A(Q2(e,1), Q2(e,2));
+    Ainc(Q2(e,2), Q2(e,1))= -A(Q2(e,2), Q2(e,1));
+    M = M + (I-X0-R0)*B*Ainc;
+    %sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
+    
+    %disp(sigmahat);
+    P2(i,:) = Q2(e,:);
+    Q2(e,:)=[];
+    q=q-1;
+end
+sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
+disp(sigmahat);
 
 
 %run dynamics to calculate sigma(P)
@@ -107,7 +145,11 @@ for i = 1:rounds
     r = r+ D*x;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
+disp("%%%%%%%DS real%%%%%%")
+disp("original:")
 disp(sigma);
+
+A2=A;
 
 for e= 1:k
     A(P(e,1),P(e,2))=0;
@@ -125,5 +167,24 @@ for i = 1:rounds
     r = r+ D*x;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
+disp("greedy actual:")
 disp(sigma);
 
+for e= 1:k
+    A2(P2(e,1),P2(e,2))=0;
+    A2(P2(e,2),P2(e,1))=0;
+end
+
+%run dynamics to calculate sigma(P)
+%rounds
+%rounds = 10000;
+%after deleting edges
+x = x0;
+r = r0;
+for i = 1:rounds
+    x = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
+    r = r+ D*x;
+end
+sigma = ones(1,nn)*(x+r-x0-r0);
+disp("random actual:")
+disp(sigma);
