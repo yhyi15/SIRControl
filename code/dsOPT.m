@@ -21,7 +21,7 @@ for i = 1:n-1
     for j = i+1:n
         edgeCoin = binornd(1,2*log(n)/n);
         if edgeCoin ==1
-            G = addedge(G, i,j, 0.2 + 0.8*rand());
+            G = addedge(G, i,j, 1);
         end
     end
 end
@@ -37,17 +37,17 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 40;
+s = 30;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(i) = rand()/3;
+    x0(i) = rand()/2;
 end
 for i = 1:gccSize
-    r0(i) = rand()/100;
+    r0(i) = rand()/20;
 end
 
 %input to the algorithm: an edge set, an integer k
@@ -56,10 +56,11 @@ m = numedges(GCC);
 nn = numnodes(GCC);
 %randomly choose 1/5 edges as candidate set
 constraint = 2;
-q=floor(m/5);
+qsize=floor(m/2);
+q=qsize;
 qidx = randsample(m, q);
 Q = edgelist(qidx, :);
-k = min(q, 100);
+k = floor(qsize/3);
 %matrices
 A = adjacency(G,'weighted');
 betaList = beta* ones(nn,1);
@@ -78,7 +79,7 @@ disp(sigmahat);
 
 % choose deleting set using the surrogate
 P=zeros(k,3);
-disp("%%%%%%%%%%%%%%%%%%%%%%%%%")
+%disp("%%%%%%%%%%%%%%%%%%%%%%%%%")
 disp("greedy:")
 for i = 1:k
     %disp(i)
@@ -107,8 +108,9 @@ sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
 disp(sigmahat);
 
 %to compare with random choices
-disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+%disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 disp("random choices:");
+q2=qsize;
 M = I - D + (I-X0-R0)*B*A;
 P2=zeros(k,3);
 Q2=edgelist(qidx, :);
@@ -116,7 +118,7 @@ for i = 1:k
     %disp(i)
     %iterate over all remaining candidates
     %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
-    e =randi(q,1);
+    e =randi(q2,1);
     %disp(e)
     
     Ainc = zeros(nn,nn);
@@ -128,7 +130,46 @@ for i = 1:k
     %disp(sigmahat);
     P2(i,:) = Q2(e,:);
     Q2(e,:)=[];
-    q=q-1;
+    q2=q2-1;
+end
+sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
+disp(sigmahat);
+
+
+
+%%%% to reduce maximum degree by removing arbitrary edges incident to the
+%%%% maximum degree node
+disp("removing an edge incident to maximum degree nodes")
+q3=qsize;
+M = I - D + (I-X0-R0)*B*A;
+P3=zeros(k,3);
+Q3=edgelist(qidx, :);
+GCCCopy=GCC;
+for i = 1:k
+    %disp(i)
+    %iterate over all remaining candidates
+    %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
+    dmax = 0;
+    for e = 1:q
+        dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
+        %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
+        if dupdate>dmax
+            choice = e;
+            dmax = dupdate;
+        end
+    end
+    
+    Ainc = zeros(nn,nn);
+    Ainc(Q3(e,1), Q3(e,2))= -A(Q3(e,1), Q3(e,2));
+    Ainc(Q3(e,2), Q3(e,1))= -A(Q3(e,2), Q3(e,1));
+    M = M + (I-X0-R0)*B*Ainc;
+    
+    %disp(sigmahat);
+    P3(i,:) = Q3(choice,:);
+    %disp(choice)
+    Q3(choice,:)=[];
+    GCCCopy = rmedge(GCCCopy, Q3(choice,1), Q3(choice,2));
+    q3=q3-1;
 end
 sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
 disp(sigmahat);
@@ -150,6 +191,7 @@ disp("original:")
 disp(sigma);
 
 A2=A;
+A3=A;
 
 for e= 1:k
     A(P(e,1),P(e,2))=0;
@@ -187,4 +229,18 @@ for i = 1:rounds
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
 disp("random actual:")
+disp(sigma);
+
+for e= 1:k
+    A3(P3(e,1),P3(e,2))=0;
+    A3(P3(e,2),P3(e,1))=0;
+end
+x = x0;
+r = r0;
+for i = 1:rounds
+    x = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
+    r = r+ D*x;
+end
+sigma = ones(1,nn)*(x+r-x0-r0);
+disp("degree reducing actural:")
 disp(sigma);
