@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 200;
+n = 500;
 
 %paramaters
 delta = 0.25;
@@ -37,7 +37,7 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 30;
+s = 80;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
@@ -62,7 +62,7 @@ qidx = randsample(m, q);
 Q = edgelist(qidx, :);
 k = floor(qsize/3);
 %matrices
-A = adjacency(G,'weighted');
+A = adjacency(GCC,'weighted');
 betaList = beta* ones(nn,1);
 deltaList = delta * ones(nn,1);
 B = diag(betaList);
@@ -81,28 +81,54 @@ disp(sigmahat);
 P=zeros(k,3);
 %disp("%%%%%%%%%%%%%%%%%%%%%%%%%")
 disp("greedy:")
+curInv = inv(I-M);
 for i = 1:k
     %disp(i)
     %iterate over all remaining candidates
     curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
+    minval=curr;
+    % = 0;
+    curLft = ones(1,nn) * (M+D-I);
+    curRt = curInv * x0;
+    flg = 0;
     for e = 1:q
-        Ainc = zeros(nn,nn);
-        Ainc(Q(e,1), Q(e,2))= -A(Q(e,1), Q(e,2));
-        Ainc(Q(e,2), Q(e,1))= -A(Q(e,2), Q(e,1));
-        Mt = M + (I-X0-R0)*B*Ainc;
-        sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
-        if sigmahat<curr
-            curr = sigmahat;
+        %Ainc = zeros(nn,nn);
+        %Ainc(Q(e,1), Q(e,2))= -A(Q(e,1), Q(e,2));
+        %Ainc(Q(e,2), Q(e,1))= -A(Q(e,2), Q(e,1));
+        %Mt = M + (I-X0-R0)*B*Ainc;
+        %sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
+        %disp(sigmahat);
+        ei = Q(e,1); ej = Q(e,2);
+        Ri = curInv(ei,:);
+        Rj = curInv(ej,:);
+        Ci = curInv(:,ei);
+        Cj = curInv(:,ej);
+        Aij = B(ei,ei)*A(ei,ej);
+        Aji = B(ej,ej)*A(ej,ei);
+        lft = curLft;
+        lft(ej)= lft(ej) - (1-x0(ei)-r0(ei))*Aij;
+        lft(ei)= lft(ei) - (1-x0(ej)-r0(ej))*Aji;
+        infectNum = numUpdate(nn, Ri,Rj,Ci,Cj, x0, r0, lft, curRt, ei, ej, Aij, Aji);
+        %disp(infectNum);
+        if infectNum<minval
+            minval = infectNum;
             choice = e;
-            Mc = Mt;
+            tempLft = lft;
+            flg =1;
         end
     end
+    %disp(choice);
     %disp(sigmahat);
     P(i,:) = Q(choice,:);
+    M(Q(choice,1),Q(choice,2)) = 0;
+    M(Q(choice,2),Q(choice,1)) = 0;
+    curLft = tempLft;
+    Aij = B(Q(choice,1),Q(choice,1))*A(Q(choice,1),Q(choice,2));
+    Aji = B(Q(choice,2),Q(choice,2))*A(Q(choice,2),Q(choice,1));
+    curInv = invUpdate(curInv, x0, r0, Q(choice,1),Q(choice,2),Aij, Aji);
     %disp(choice)
     Q(choice,:)=[];
     q=q-1;
-    M = Mc;
 end
 sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
 disp(sigmahat);
@@ -177,7 +203,7 @@ disp(sigmahat);
 
 %run dynamics to calculate sigma(P)
 %rounds
-rounds = 10000;
+rounds = 500;
 %before deleting edges
 x = x0;
 r = r0;
