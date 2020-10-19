@@ -124,18 +124,14 @@ for i = 1:k
                     visited(t) = 1;
                 end
             end
-        end
-        for e =1:q
-            s = Q(e,1);
-            t = Q(e,2);
-            Ghat = rmedge(Ghat,s,t);
-            components=conncomp(Ghat);
-            for iter_ss=1:s
-                if components(terminal)==components(S(iter_ss))
-                    count(e)= count(e)+1;
-                end
+            for e =1:q
+                s = Q(e,1);
+                t = Q(e,2);
+                Ghat = rmedge(Ghat,s,t);
+                components=conncomp(Ghat);
+                if components(terminal)
+                
             end
-            
         end
     end
 end

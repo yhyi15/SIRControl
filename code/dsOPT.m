@@ -8,9 +8,9 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 1000;
+n = 500;
 
-%paramaters
+%parameters
 delta = 0.25;
 beta = 0.1/log(n);
 
@@ -21,7 +21,7 @@ for i = 1:n-1
     for j = i+1:n
         edgeCoin = binornd(1,2*log(n)/n);
         if edgeCoin ==1
-            G = addedge(G, i,j, 1);
+            G = addedge(G, i,j, 0.2);%/(2.5*log(n)));
         end
     end
 end
@@ -37,14 +37,14 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 50;
+s = 120;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(i) = rand()/2;
+    x0(S(i)) = 0.8 +0.2*rand();
 end
 for i = 1:gccSize
     r0(i) = rand()/20;
@@ -216,8 +216,9 @@ rounds = 1000;
 x = x0;
 r = r0;
 for i = 1:rounds
-    x = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
+    xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
     r = r+ D*x;
+    x=xt;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
 disp("%%%%%%%DS real%%%%%%")
@@ -239,8 +240,9 @@ end
 x = x0;
 r = r0;
 for i = 1:rounds
-    x = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
+    xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
     r = r+ D*x;
+    x=xt;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
 disp("greedy actual:")
@@ -258,8 +260,9 @@ end
 x = x0;
 r = r0;
 for i = 1:rounds
-    x = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
+    xt = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
     r = r+ D*x;
+    x=xt;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
 disp("random actual:")
@@ -272,8 +275,9 @@ end
 x = x0;
 r = r0;
 for i = 1:rounds
-    x = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
+    xt = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
     r = r+ D*x;
+    x=xt;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
 disp("degree reducing actural:")
