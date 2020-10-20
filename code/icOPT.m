@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 100;
+n = 200;
 
 %parameters
 delta = 0.25;
@@ -21,7 +21,7 @@ for i = 1:n-1
     for j = i+1:n
         edgeCoin = binornd(1,2*log(n)/n);
         if edgeCoin ==1
-            G = addedge(G, i,j, (0.1 + 0.9*rand())/(2.5*log(n)));
+            G = addedge(G, i,j, (0.9 + 0.1*rand())/(2.5*log(n)));
         end
     end
 end
@@ -37,7 +37,7 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 20;
+s = 8;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
@@ -60,11 +60,11 @@ qsize=floor(m/2);
 q=qsize;
 qidx = randsample(m, q);
 Q = edgelist(qidx, :);
-k = floor(qsize/3);
+k = floor(qsize/2);
 
 %matrices
 A = adjacency(GCC,'weighted');
-betaList = 0.2*beta* ones(nn,1) + 0.8*beta*rand([nn,1]);
+betaList = beta* ones(nn,1) + 0.8*beta*rand([nn,1]);
 deltaList = delta * ones(nn,1);
 B = diag(betaList);
 D = diag(deltaList);
@@ -76,8 +76,8 @@ M = I - D + (I-X0-R0)*B*A;
 
 %calculating original expected infections
 %randomly pick a node from the network
-eps = 0.1;
-rounds = nn*log(nn)/(eps^2);
+eps = 0.2;
+rounds = 0.5*nn*log(nn)/(eps^2);
 
 count = 0;
 
@@ -85,166 +85,258 @@ disp(rounds);
 
 
 P = zeros(k,3);
-Ggreedy = GCC;
-
+Ggreedy = graph(A);
+disp("%%%%%%%%%%%% Original %%%%%%%%%%%%%%%%%")
 cur_count = 0;
-for round = 1:rounds
-    Ghat = graph;
-    if(mod(round,5000)==0)
-        disp(round/rounds);
-    end
+for round = 1:10*rounds
     terminal = randsample(nn,1);
     
     stack = zeros(nn, 1);
     stack(1) = terminal;
     top = 1;
-    visited = zeros(nn,1);
+    activated = zeros(nn,1);
+    
     while top>0
         %pop
         cur = stack(top);
         top = top -1;
-        flag = 0;
-        for iter_s = 1:s
-            if cur == S(iter_s)
-                flag = 1;
-                break;
-            end
-        end
-        if flag ==1
-            cur_count = cur_count+1;
-            break;
-        end
-        nb = neighbors(Ggreedy, cur);
-        for iter = 1:size(nb,1)
-            %push
-            t = nb(iter);
-            contCoin = rand();
-            if (visited(t)==0 && contCoin<=A(cur,t))
-                %push
-                top = top+1;
-                stack(top) = t;
-                Ghat = addedge(Ghat, cur,t, 1);
-                visited(t) = 1;
-            end
-        end
-    end
-end
-infect = cur_count*nn/rounds;
-disp("%%%%%%%%%%%%%% before removal %%%%%%%%%%%%%")
-disp(infect);
-
-
-for i = 1:k
-    cur_count = 0;
-    count = zeros(q,1);
-    for round = 1:rounds
-        Ghat = graph;
-        if(mod(round,5000)==0)
-            disp(round/rounds);
-        end
-        terminal = randsample(nn,1);
-        
-        stack = zeros(nn, 1);
-        stack(1) = terminal;
-        top = 1;
-        visited = zeros(nn,1);
-        while top>0
-            %pop
-            cur = stack(top);
-            top = top -1;
-            flag = 0;
-            for iter_s = 1:s
-                if cur == S(iter_s)
-                    flag = 1;
-                    break;
-                end
-            end
-            if flag ==1
-                cur_count = cur_count+1;
-                break;
-            end
+        if activated(cur)==0
             nb = neighbors(Ggreedy, cur);
             for iter = 1:size(nb,1)
                 %push
                 t = nb(iter);
                 contCoin = rand();
-                if (visited(t)==0 && contCoin<=A(cur,t))
+                if (contCoin<=A(cur,t))
                     %push
                     top = top+1;
                     stack(top) = t;
-                    Ghat = addedge(Ghat, cur,t, 1);
-                    visited(t) = 1;
                 end
             end
+            activated(cur)=1;
         end
-        for e =1:q
-            s = Q(e,1);
-            t = Q(e,2);
-            exist = findedge(Ghat,s,t);
-            if exist>0
-                Ghat = rmedge(Ghat,s,t);
-                components=conncomp(Ghat);
-                for iter_ss=1:s
-                    if components(terminal)==components(S(iter_ss))
-                        count(e)= count(e)+1;
+    end
+    for seed_iter= 1:s
+        if activated(S(seed_iter))==1
+            cur_count=cur_count+1;
+            break;
+        end
+    end
+end
+infect = cur_count*nn/10/rounds;
+disp("before removal:")
+%disp(cur_count);
+disp(infect-s);
+
+
+
+disp("%%%%%%%%%%%%%%% Greedy %%%%%%%%%%%%%%%%%%%%%");
+disp(strcat("k: ", num2str(k)));
+for i = 1:k
+    disp(strcat("deleting the ",num2str(i),"-th edge"));
+    cur_count = 0;
+    count = zeros(q,1);
+    for round = 1:rounds
+        succ = 0;
+        contEdge = zeros(nn,2);
+        contNumEdges = 0;
+        %if(mod(round,100)==0)
+        %    disp(round/rounds);
+        %end
+        terminal = randsample(nn,1);
+        
+        stack = zeros(nn, 1);
+        stack(1) = terminal;
+        top = 1;
+        activated = zeros(nn,1);
+        
+        while top>0
+            %pop
+            cur = stack(top);
+            top = top -1;
+            if activated(cur)==0
+                nb = neighbors(Ggreedy, cur);
+                for iter = 1:size(nb,1)
+                    %push
+                    t = nb(iter);
+                    contCoin = rand();
+                    if (contCoin<=A(cur,t))
+                        %push
+                        top = top+1;
+                        stack(top) = t;
+                        contNumEdges = contNumEdges + 1;
+                        contEdge(contNumEdges,:) = [cur, t];
                     end
                 end
-                Ghat = addedge(Ghat,s,t,1);
+                activated(cur)=1;
+            end
+        end
+        for iter_c = 1:s
+            if activated(S(iter_c))==1
+                succ = 1;
+                cur_count=cur_count+1;
+                break;
+            end
+        end
+
+        for e =1:q
+            sn = Q(e,1);
+            tn = Q(e,2);
+            in_h = findedgeCont(contEdge, contNumEdges,sn,tn);
+            if in_h ==0
+                count(e) = count(e)+succ;
+                continue;
+            end
+            stack_h = zeros(contNumEdges, 1);
+            stack_h(1)= terminal;
+            top_h = 1;
+            activated_h = zeros(nn,1);
+            while top_h>0
+                cur_h = stack_h(top_h);
+                top_h = top_h -1;
+                if activated_h(cur_h)==0
+                    nb_h = neighborsCont(contEdge, contNumEdges, cur_h);
+                    %disp(size(nb_h));
+                    for iter_h = 1:size(nb_h,1)
+                        %push
+                        t_h = nb_h(iter_h);
+                        if 1>0 %(~((cur_h==sn && t_h == tn) || (cur_h==tn && t_h == sn)))
+                            %push
+                            top_h = top_h+1;
+                            stack_h(top_h) = t_h;
+                        end
+                    end
+                    activated_h(cur_h)=1;
+                end
+            end
+            for iter_h_ss = 1:s
+                if activated_h(S(iter_h_ss))==1
+                    count(e)=count(e)+1;
+                    break;
+                end
             end
         end
     end
+    %disp("%%%%%%%%%%%%%%%")
+    %disp(cur_count);
     [minv, idx] = min(count);
+    %disp(minv);
     P(k,:) = Q(idx,:);
+    Ggreedy = rmedge(Ggreedy,Q(idx,1),Q(idx,2));
     Q(idx,:)=[];
     q=q-1;
-    Ggreedy = rmedge(Ggreedy,Q(idx,1),Q(idx,2));
 end
 
+
 cur_count = 0;
-for round = 1:rounds
-    Ghat = graph;
-    if(mod(round,5000)==0)
-        disp(round/rounds);
-    end
+for round = 1:10*rounds
+    %Ghat = graph;
+    %if(mod(round,5000)==0)
+    %    disp(round/rounds);
+    %end
     terminal = randsample(nn,1);
     
     stack = zeros(nn, 1);
     stack(1) = terminal;
     top = 1;
-    visited = zeros(nn,1);
+    activated = zeros(nn,1);
     while top>0
         %pop
         cur = stack(top);
         top = top -1;
-        flag = 0;
-        for iter_s = 1:s
-            if cur == S(iter_s)
-                flag = 1;
-                break;
-            end
-        end
-        if flag ==1
-            cur_count = cur_count+1;
-            break;
-        end
-        nb = neighbors(Ggreedy, cur);
-        for iter = 1:size(nb,1)
-            %push
-            t = nb(iter);
-            contCoin = rand();
-            if (visited(t)==0 && contCoin<=A(cur,t))
+        if activated(cur)==0
+            nb = neighbors(Ggreedy, cur);
+            for iter = 1:size(nb,1)
                 %push
-                top = top+1;
-                stack(top) = t;
-                Ghat = addedge(Ghat, cur,t, 1);
-                visited(t) = 1;
+                t = nb(iter);
+                contCoin = rand();
+                if (contCoin<=A(cur,t))
+                    %push
+                    top = top+1;
+                    stack(top) = t;
+                end
             end
+            activated(cur)=1;
+        end
+    end
+    for seed_iter= 1:s
+        if activated(S(seed_iter))==1
+            cur_count=cur_count+1;
+            break;
         end
     end
 end
 
-infect = cur_count*nn/rounds;
-disp("%%%%%%%%%%%% after removal%%%%%%%%")
-disp(infect);
+infect = cur_count*nn/10/rounds;
+disp("after removal:")
+disp(infect-s);
+
+
+%to compare with random choices
+disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+disp("random choices:");
+q2=qsize;
+P2=zeros(k,3);
+Q2=edgelist(qidx, :);
+Grand = graph(A);
+for i = 1:k
+    %disp(i)
+    %iterate over all remaining candidates
+    %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
+    e =randi(q2,1);
+    %disp(e)
+    
+    Grand = rmedge(Grand, Q2(e,1), Q2(e,2));
+    P2(i,:) = Q2(e,:);
+    Q2(e,:)=[];
+    q2=q2-1;
+end
+
+
+cur_count = 0;
+for round = 1:10*rounds
+    %Ghat = graph;
+    %if(mod(round,5000)==0)
+    %    disp(round/rounds);
+    %end
+    terminal = randsample(nn,1);
+    
+    stack = zeros(nn, 1);
+    stack(1) = terminal;
+    top = 1;
+    activated = zeros(nn,1);
+    while top>0
+        %pop
+        cur = stack(top);
+        top = top -1;
+        if(activated(cur)==0)
+            nb = neighbors(Grand, cur);
+            for iter = 1:size(nb,1)
+                %push
+                t = nb(iter);
+                contCoin = rand();
+                if (contCoin<=A(cur,t))
+                    %push
+                    top = top+1;
+                    stack(top) = t;
+                end
+            end
+            activated(cur)=1;
+        end
+    end
+    for seed_iter= 1:s
+        if activated(S(seed_iter))==1
+            cur_count=cur_count+1;
+            break;
+        end
+    end
+end
+
+infect = cur_count*nn/10/rounds;
+disp("after removal:")
+disp(infect-s);
+
+
+
+
 
 

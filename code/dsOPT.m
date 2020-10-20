@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 500;
+n = 100;
 
 %parameters
 delta = 0.25;
@@ -37,7 +37,7 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 120;
+s = 20;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
