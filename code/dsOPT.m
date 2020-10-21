@@ -254,7 +254,7 @@ for i = 1:rounds
     xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
     r = r+ D*x;
     x=xt;
-    if(max(x)<=10^-6)
+    if(max(x)<=10^-4)
         break;
     end
 end

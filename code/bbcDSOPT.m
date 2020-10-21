@@ -8,34 +8,41 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 20;
+n = 200;
 
 %parameters
-delta = 0.25;
-beta = 0.1/log(n);
+%delta = 0.35;
+%beta = 0.03;
+
+rdEdges = readmatrix('data/BBC_contact_network.csv');
 
 %create an arbitrary graph
 %
-G = graph;
-for i = 1:n-1
-    for j = i+1:n
-        edgeCoin = binornd(1,2*log(n)/n);
-        if edgeCoin ==1
-            G = addedge(G, i,j, 0.2);%/(2.5*log(n)));
-        end
-    end
-end
+n = max(max(rdEdges));
+m = size(rdEdges, 1);
+G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
+% for i = 1:n-1
+%     for j = i+1:n
+%         edgeCoin = binornd(1,2*log(n)/n);
+%         if edgeCoin ==1
+%             G = addedge(G, i,j, 1);%/(2.5*log(n)));
+%         end
+%     end
+% end
 
-% take the (presumably) largest connected component
-[bins, binsizes] = conncomp(G);
-gccSize = max(binsizes);
-idx = binsizes(bins) == gccSize;
-SG = subgraph(G, idx);
-%reorder nodes in the gcc
-order = 1:gccSize;
-GCC = reordernodes(SG, order);
-
-
+% % take the (presumably) largest connected component
+% [bins, binsizes] = conncomp(G);
+% gccSize = max(binsizes);
+% idx = binsizes(bins) == gccSize;
+% SG = subgraph(G, idx);
+% %reorder nodes in the gcc
+% order = 1:gccSize;
+% GCC = reordernodes(SG, order);
+GCC = G;
+gccSize = numnodes(GCC);
+maxd = max(degree(G));
+beta = 0.02;
+delta = 0.2;
 %set initial conditions
 s = 20;
 %choose s seeds
@@ -44,7 +51,7 @@ S = randsample(gccSize,s);
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(S(i)) = 0.8 +0.2*rand();
+    x0(S(i)) = rand();
 end
 for i = 1:gccSize
     r0(i) = rand()/20;
@@ -63,7 +70,7 @@ Q = edgelist(qidx, :);
 k = floor(qsize/3);
 %matrices
 A = adjacency(GCC,'weighted');
-betaList = 0.5*beta* ones(nn,1) + 1*beta*rand([nn,1]);
+betaList = 0.9*beta* ones(nn,1) + 0.1*beta*rand([nn,1]);
 deltaList = delta * ones(nn,1);
 B = diag(betaList);
 D = diag(deltaList);
@@ -163,10 +170,10 @@ for i = 1:k
     e =randi(q2,1);
     %disp(e)
     
-    Ainc = zeros(nn,nn);
-    Ainc(Q2(e,1), Q2(e,2))= -A(Q2(e,1), Q2(e,2));
-    Ainc(Q2(e,2), Q2(e,1))= -A(Q2(e,2), Q2(e,1));
-    M = M + (I-X0-R0)*B*Ainc;
+    %Ainc = zeros(nn,nn);
+    %Ainc(Q2(e,1), Q2(e,2))= -A(Q2(e,1), Q2(e,2));
+    %Ainc(Q2(e,2), Q2(e,1))= -A(Q2(e,2), Q2(e,1));
+    %M = M + (I-X0-R0)*B*Ainc;
     %%sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
     choice = e;
     P2(i,:) = Q2(choice,:);
@@ -216,12 +223,11 @@ for i = 1:k
         end
     end
     
-    Ainc = zeros(nn,nn);
-    Ainc(Q3(choice,1), Q3(choice,2))= -A(Q3(choice,1), Q3(choice,2));
-    Ainc(Q3(choice,2), Q3(choice,1))= -A(Q3(choice,2), Q3(choice,1));
-    M = M + (I-X0-R0)*B*Ainc;
+    %Ainc = zeros(nn,nn);
+    %Ainc(Q3(choice,1), Q3(choice,2))= -A(Q3(choice,1), Q3(choice,2));
+    %Ainc(Q3(choice,2), Q3(choice,1))= -A(Q3(choice,2), Q3(choice,1));
+    %M = M + (I-X0-R0)*B*Ainc;
     
-    choice = e;
     P3(i,:) = Q3(choice,:);
     M(Q3(choice,1),Q3(choice,2)) = 0;
     M(Q3(choice,2),Q3(choice,1)) = 0;
@@ -255,7 +261,7 @@ for i = 1:rounds
     xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
     r = r+ D*x;
     x=xt;
-    if(max(x)<=10^-6)
+    if(max(x)<=10^-4)
         break;
     end
 end
@@ -288,7 +294,7 @@ for e = 1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-6)
+        if(max(x)<=10^-4)
             break;
         end
     end
@@ -318,7 +324,7 @@ for e = 1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-6)
+        if(max(x)<=10^-4)
             break;
         end
     end
@@ -343,7 +349,7 @@ for e =1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-6)
+        if(max(x)<=10^-4)
             break;
         end
     end
@@ -355,13 +361,13 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo.txt','w');
-outFile1 = fopen('results/dsGreedyResult.txt','w');
-outFile2 = fopen('results/dsRandResult.txt','w');
-outFile3 = fopen('results/dsMaxDResult.txt','w');
-outFile4 = fopen('results/dsGreedyResultReal.txt','w');
-outFile5 = fopen('results/dsRandResultReal.txt','w');
-outFile6 = fopen('results/dsMaxDResultReal.txt','w');
+outFile0 = fopen('results/basicInfo_bbc.txt','w');
+outFile1 = fopen('results/dsGreedyResult_bbc.txt','w');
+outFile2 = fopen('results/dsRandResult_bbc.txt','w');
+outFile3 = fopen('results/dsMaxDResult_bbc.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal_bbc.txt','w');
+outFile5 = fopen('results/dsRandResultReal_bbc.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal_bbc.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
 for i = 1:k+1
