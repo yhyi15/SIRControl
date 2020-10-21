@@ -237,8 +237,8 @@ for i = 1:k
     %disp(sigmahat);
     P3(i,:) = Q3(choice,:);
     %disp(choice)
-    Q3(choice,:)=[];
     GCCCopy = rmedge(GCCCopy, Q3(choice,1), Q3(choice,2));
+    Q3(choice,:)=[];
     q3=q3-1;
 end
 sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
@@ -255,8 +255,12 @@ for i = 1:rounds
     xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
     r = r+ D*x;
     x=xt;
+    if(max(x)<=10^-6)
+        break;
+    end
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
+originalRstReal = sigma;
 disp("%%%%%%%DS real%%%%%%")
 disp("original:")
 disp(sigma);
@@ -264,57 +268,99 @@ disp(sigma);
 A2=A;
 A3=A;
 
-for e= 1:k
-    A(P(e,1),P(e,2))=0;
-    A(P(e,2),P(e,1))=0;
-end
+%for e= 1:k
+%    A(P(e,1),P(e,2))=0;
+%    A(P(e,2),P(e,1))=0;
+%end
 
 %run dynamics to calculate sigma(P)
 %rounds
 %rounds = 10000;
 %after deleting edges
-x = x0;
-r = r0;
-for i = 1:rounds
-    xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
-    r = r+ D*x;
-    x=xt;
+greedyRstReal = zeros(k+1,1);
+greedyRstReal(1) = originalRstReal;
+for e = 1:k
+    A(P(e,1),P(e,2))=0;
+    A(P(e,2),P(e,1))=0;
+    x = x0;
+    r = r0;
+    for i = 1:rounds
+        xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
+        r = r+ D*x;
+        x=xt;
+        if(max(x)<=10^-6)
+            break;
+        end
+    end
+    sigma = ones(1,nn)*(x+r-x0-r0);
+    greedyRstReal(e+1)=sigma;
 end
-sigma = ones(1,nn)*(x+r-x0-r0);
 disp("greedy actual:")
 disp(sigma);
 
-for e= 1:k
-    A2(P2(e,1),P2(e,2))=0;
-    A2(P2(e,2),P2(e,1))=0;
-end
+%for e= 1:k
+%    A2(P2(e,1),P2(e,2))=0;
+%    A2(P2(e,2),P2(e,1))=0;
+%end
 
 %run dynamics to calculate sigma(P)
 %rounds
 %rounds = 10000;
 %after deleting edges
-x = x0;
-r = r0;
-for i = 1:rounds
-    xt = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
-    r = r+ D*x;
-    x=xt;
+randRstReal = zeros(k+1,1);
+randRstReal(1)= originalRstReal;
+for e = 1:k
+    A2(P2(e,1),P2(e,2))=0;
+    A2(P2(e,2),P2(e,1))=0;
+    x = x0;
+    r = r0;
+    for i = 1:rounds
+        xt = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
+        r = r+ D*x;
+        x=xt;
+        if(max(x)<=10^-6)
+            break;
+        end
+    end
+    sigma = ones(1,nn)*(x+r-x0-r0);
+    randRstReal(e+1) = sigma;
 end
-sigma = ones(1,nn)*(x+r-x0-r0);
 disp("random actual:")
 disp(sigma);
 
-for e= 1:k
+%for e= 1:k
+%    A3(P3(e,1),P3(e,2))=0;
+%    A3(P3(e,2),P3(e,1))=0;
+%end
+maxDRstReal = zeros(k+1,1);
+maxDRstReal(1)= originalRstReal;
+for e =1:k
     A3(P3(e,1),P3(e,2))=0;
     A3(P3(e,2),P3(e,1))=0;
-end
-x = x0;
-r = r0;
-for i = 1:rounds
-    xt = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
-    r = r+ D*x;
-    x=xt;
+    x = x0;
+    r = r0;
+    for i = 1:rounds
+        xt = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
+        r = r+ D*x;
+        x=xt;
+        if(max(x)<=10^-6)
+            break;
+        end
+    end
+    sigma = ones(1,nn)*(x+r-x0-r0);
+    maxDRstReal(e+1) = sigma;
 end
 sigma = ones(1,nn)*(x+r-x0-r0);
 disp("degree reducing actural:")
 disp(sigma);
+
+disp("printing results")
+outFile = fopen('results/expResult.txt','w');
+numRmv = (1:k+1)'-ones(k+1,1);
+for i = 1:k+1
+    fprintf(outFile,'%d\t%5f\t%5f\t%5f\t%5f\t%5f\t%5f\n',...
+        numRmv(i), greedyRst(i), randRst(i), maxDRst(i), ...
+        greedyRstReal(i), randRstReal(i), maxDRstReal(i));
+end
+fclose(outFile);
+disp("finished writing")    
