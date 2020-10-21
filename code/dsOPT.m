@@ -355,12 +355,27 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile = fopen('results/expResult.txt','w');
+outFile0 = fopen('results/basicInfo.txt','w');
+outFile1 = fopen('results/dsGreedyResult.txt','w');
+outFile2 = fopen('results/dsRandResult.txt','w');
+outFile3 = fopen('results/dsMaxDResult.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal.txt','w');
+outFile5 = fopen('results/dsRandResultReal.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
+fprintf(outFile0, '%d\n%d\n%d\n%d\n',nn, m, q, k);
 for i = 1:k+1
-    fprintf(outFile,'%d\t%5f\t%5f\t%5f\t%5f\t%5f\t%5f\n',...
-        numRmv(i), greedyRst(i), randRst(i), maxDRst(i), ...
-        greedyRstReal(i), randRstReal(i), maxDRstReal(i));
+    fprintf(outFile1,'%5f\n', greedyRst(i));
+    fprintf(outFile2,'%5f\n', randRst(i));
+    fprintf(outFile2,'%5f\n', maxDRst(i));
+    fprintf(outFile2,'%5f\n', greedyRstReal(i));
+    fprintf(outFile2,'%5f\n', randRstReal(i));
+    fprintf(outFile2,'%5f\n', maxDRstReal(i));
 end
-fclose(outFile);
+fclose(outFile1);
+fclose(outFile2);
+fclose(outFile3);
+fclose(outFile4);
+fclose(outFile5);
+fclose(outFile6);
 disp("finished writing")    
