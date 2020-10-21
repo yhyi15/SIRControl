@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 200;
+n = 500;
 
 %parameters
 delta = 0.35;
@@ -287,7 +287,7 @@ for e = 1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-6)
+        if(max(x)<=10^-4)
             break;
         end
     end
@@ -317,7 +317,7 @@ for e = 1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A2*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-6)
+        if(max(x)<=10^-4)
             break;
         end
     end
@@ -342,7 +342,7 @@ for e =1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A3*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-6)
+        if(max(x)<=10^-4)
             break;
         end
     end
@@ -354,13 +354,13 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo.txt','w');
-outFile1 = fopen('results/dsGreedyResult.txt','w');
-outFile2 = fopen('results/dsRandResult.txt','w');
-outFile3 = fopen('results/dsMaxDResult.txt','w');
-outFile4 = fopen('results/dsGreedyResultReal.txt','w');
-outFile5 = fopen('results/dsRandResultReal.txt','w');
-outFile6 = fopen('results/dsMaxDResultReal.txt','w');
+outFile0 = fopen('results/basicInfo_2.txt','w');
+outFile1 = fopen('results/dsGreedyResult_2.txt','w');
+outFile2 = fopen('results/dsRandResult_2.txt','w');
+outFile3 = fopen('results/dsMaxDResult_2.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal_2.txt','w');
+outFile5 = fopen('results/dsRandResultReal_2.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal_2.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
 for i = 1:k+1

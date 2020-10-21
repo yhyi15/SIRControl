@@ -8,50 +8,43 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-%n = 200;
+n = 500;
 
 %parameters
-%delta = 0.35;
-%beta = 0.03;
-
-rdEdges = readmatrix('data/BBC_contact_network.csv');
+delta = 0.35;
+beta = 0.14/log(n);
 
 %create an arbitrary graph
 %
-n = max(max(rdEdges));
-m = size(rdEdges, 1);
-G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
-% for i = 1:n-1
-%     for j = i+1:n
-%         edgeCoin = binornd(1,2*log(n)/n);
-%         if edgeCoin ==1
-%             G = addedge(G, i,j, 1);%/(2.5*log(n)));
-%         end
-%     end
-% end
+G = graph;
+for i = 1:n-1
+    for j = i+1:n
+        edgeCoin = binornd(1,2*log(n)/n);
+        if edgeCoin ==1
+            G = addedge(G, i,j, 1);%/(2.5*log(n)));
+        end
+    end
+end
 
-% % take the (presumably) largest connected component
-% [bins, binsizes] = conncomp(G);
-% gccSize = max(binsizes);
-% idx = binsizes(bins) == gccSize;
-% SG = subgraph(G, idx);
-% %reorder nodes in the gcc
-% order = 1:gccSize;
-% GCC = reordernodes(SG, order);
-GCC = G;
-gccSize = numnodes(GCC);
-maxd = max(degree(G));
-beta = 0.05;
-delta = 0.2;
+% take the (presumably) largest connected component
+[bins, binsizes] = conncomp(G);
+gccSize = max(binsizes);
+idx = binsizes(bins) == gccSize;
+SG = subgraph(G, idx);
+%reorder nodes in the gcc
+order = 1:gccSize;
+GCC = reordernodes(SG, order);
+
+
 %set initial conditions
-s = 20;
+s = 5;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(S(i)) = rand();
+    x0(S(i)) = 0.8 +0.2*rand();
 end
 for i = 1:gccSize
     r0(i) = rand()/20;
@@ -70,7 +63,7 @@ Q = edgelist(qidx, :);
 k = floor(qsize/3);
 %matrices
 A = adjacency(GCC,'weighted');
-betaList = 0.9*beta* ones(nn,1) + 0.1*beta*rand([nn,1]);
+betaList = 0.5*beta* ones(nn,1) + 1*beta*rand([nn,1]);
 deltaList = delta * ones(nn,1);
 B = diag(betaList);
 D = diag(deltaList);
@@ -294,7 +287,7 @@ for e = 1:k
         xt = x+diag(ones(nn,1)-x-r)*B*A*x - D*x;
         r = r+ D*x;
         x=xt;
-        if(max(x)<=10^-4)
+        if(max(x)<=10^-6)
             break;
         end
     end
@@ -361,13 +354,13 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo_bbc.txt','w');
-outFile1 = fopen('results/dsGreedyResult_bbc.txt','w');
-outFile2 = fopen('results/dsRandResult_bbc.txt','w');
-outFile3 = fopen('results/dsMaxDResult_bbc.txt','w');
-outFile4 = fopen('results/dsGreedyResultReal_bbc.txt','w');
-outFile5 = fopen('results/dsRandResultReal_bbc.txt','w');
-outFile6 = fopen('results/dsMaxDResultReal_bbc.txt','w');
+outFile0 = fopen('results/basicInfo_2.txt','w');
+outFile1 = fopen('results/dsGreedyResult_2.txt','w');
+outFile2 = fopen('results/dsRandResult_2.txt','w');
+outFile3 = fopen('results/dsMaxDResult_2.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal_2.txt','w');
+outFile5 = fopen('results/dsRandResultReal_2.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal_2.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
 for i = 1:k+1
