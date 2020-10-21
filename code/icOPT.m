@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 200;
+n = 20;
 
 %parameters
 delta = 0.25;
@@ -37,7 +37,7 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 8;
+s = 2;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
@@ -86,6 +86,8 @@ disp(rounds);
 
 P = zeros(k,3);
 Ggreedy = graph(A);
+
+
 disp("%%%%%%%%%%%% Original %%%%%%%%%%%%%%%%%")
 cur_count = 0;
 for round = 1:10*rounds
@@ -127,7 +129,10 @@ disp("before removal:")
 %disp(cur_count);
 disp(infect-s);
 
+originalRst = infect -s;
 
+greedyRst = zeros(k+1,1);
+greedyRst(1) = originalRst;
 
 disp("%%%%%%%%%%%%%%% Greedy %%%%%%%%%%%%%%%%%%%%%");
 disp(strcat("k: ", num2str(k)));
@@ -224,6 +229,8 @@ for i = 1:k
     Ggreedy = rmedge(Ggreedy,Q(idx,1),Q(idx,2));
     Q(idx,:)=[];
     q=q-1;
+    
+    greedyRst(i+1) = icEval(Ggreedy, nn, rounds,S ,s, A)-s;
 end
 
 
@@ -267,9 +274,12 @@ for round = 1:10*rounds
 end
 
 infect = cur_count*nn/10/rounds;
-disp("after removal:")
+disp("greedy after removal:")
 disp(infect-s);
 
+
+randRst = zeros(k+1,1);
+randRst(1) = originalRst;
 
 %to compare with random choices
 disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
@@ -279,6 +289,7 @@ P2=zeros(k,3);
 Q2=edgelist(qidx, :);
 Grand = graph(A);
 for i = 1:k
+    disp(strcat("deleting the ",num2str(i),"-th edge"));
     %disp(i)
     %iterate over all remaining candidates
     %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
@@ -289,6 +300,7 @@ for i = 1:k
     P2(i,:) = Q2(e,:);
     Q2(e,:)=[];
     q2=q2-1;
+    randRst(i+1) = icEval(Grand, nn, rounds,S ,s, A)-s;
 end
 
 
@@ -332,11 +344,99 @@ for round = 1:10*rounds
 end
 
 infect = cur_count*nn/10/rounds;
-disp("after removal:")
+disp("rand after removal:")
 disp(infect-s);
 
 
+maxDRst = zeros(k+1,1);
+maxDRst(1) = originalRst;
+
+%to compare with max degree
+disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+disp("max dgree:");
+q3=qsize;
+P3=zeros(k,3);
+Q3=edgelist(qidx, :);
+GmaxD = graph(A);
+for i = 1:k
+    disp(strcat("deleting the ",num2str(i),"-th edge"));
+    %%%%%%%
+    dmax = 0;
+    for e = 1:q
+        dupdate = max(degree(GmaxD, Q3(e, 1)), degree(GmaxD, Q3(e, 2)));
+        %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
+        if dupdate>dmax
+            choice = e;
+            dmax = dupdate;
+        end
+    end
+    
+    Grand = rmedge(GmaxD, Q3(choice,1), Q3(choice,2));
+    P3(i,:) = Q3(choice,:);
+    Q3(choice,:)=[];
+    q3=q3-1;
+    maxDRst(i+1) = icEval(GmaxD, nn, rounds,S ,s, A)-s;
+end
 
 
+cur_count = 0;
+for round = 1:10*rounds
+    %Ghat = graph;
+    %if(mod(round,5000)==0)
+    %    disp(round/rounds);
+    %end
+    terminal = randsample(nn,1);
+    
+    stack = zeros(nn, 1);
+    stack(1) = terminal;
+    top = 1;
+    activated = zeros(nn,1);
+    while top>0
+        %pop
+        cur = stack(top);
+        top = top -1;
+        if(activated(cur)==0)
+            nb = neighbors(GmaxD, cur);
+            for iter = 1:size(nb,1)
+                %push
+                t = nb(iter);
+                contCoin = rand();
+                if (contCoin<=A(cur,t))
+                    %push
+                    top = top+1;
+                    stack(top) = t;
+                end
+            end
+            activated(cur)=1;
+        end
+    end
+    for seed_iter= 1:s
+        if activated(S(seed_iter))==1
+            cur_count=cur_count+1;
+            break;
+        end
+    end
+end
 
+infect = cur_count*nn/10/rounds;
+disp("maxD after removal:")
+disp(infect-s);
+
+disp("printing results")
+outFile0 = fopen('results/basicInfo.txt','w');
+outFile1 = fopen('results/icGreedyResult.txt','w');
+outFile2 = fopen('results/icRandResult.txt','w');
+outFile3 = fopen('results/icMaxDResult.txt','w');
+
+numRmv = (1:k+1)'-ones(k+1,1);
+fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
+for i = 1:k+1
+    fprintf(outFile1,'%5f\n', greedyRst(i));
+    fprintf(outFile2,'%5f\n', randRst(i));
+    fprintf(outFile3,'%5f\n', maxDRst(i));
+end
+fclose(outFile1);
+fclose(outFile2);
+fclose(outFile3);
+disp("finished writing")    
 

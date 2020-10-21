@@ -363,14 +363,14 @@ outFile4 = fopen('results/dsGreedyResultReal.txt','w');
 outFile5 = fopen('results/dsRandResultReal.txt','w');
 outFile6 = fopen('results/dsMaxDResultReal.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
-fprintf(outFile0, '%d\n%d\n%d\n%d\n',nn, m, q, k);
+fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
 for i = 1:k+1
     fprintf(outFile1,'%5f\n', greedyRst(i));
     fprintf(outFile2,'%5f\n', randRst(i));
-    fprintf(outFile2,'%5f\n', maxDRst(i));
-    fprintf(outFile2,'%5f\n', greedyRstReal(i));
-    fprintf(outFile2,'%5f\n', randRstReal(i));
-    fprintf(outFile2,'%5f\n', maxDRstReal(i));
+    fprintf(outFile3,'%5f\n', maxDRst(i));
+    fprintf(outFile4,'%5f\n', greedyRstReal(i));
+    fprintf(outFile5,'%5f\n', randRstReal(i));
+    fprintf(outFile6,'%5f\n', maxDRstReal(i));
 end
 fclose(outFile1);
 fclose(outFile2);
