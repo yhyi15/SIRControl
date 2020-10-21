@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 20;
+n = 200;
 
 %parameters
 delta = 0.25;
@@ -37,7 +37,7 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 2;
+s = 5;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
@@ -77,7 +77,7 @@ M = I - D + (I-X0-R0)*B*A;
 %calculating original expected infections
 %randomly pick a node from the network
 eps = 0.2;
-rounds = 0.5*nn*log(nn)/(eps^2);
+rounds = 0.1*nn*log(nn)/(eps^2);
 
 count = 0;
 
@@ -371,7 +371,7 @@ for i = 1:k
         end
     end
     
-    Grand = rmedge(GmaxD, Q3(choice,1), Q3(choice,2));
+    GmaxD = rmedge(GmaxD, Q3(choice,1), Q3(choice,2));
     P3(i,:) = Q3(choice,:);
     Q3(choice,:)=[];
     q3=q3-1;

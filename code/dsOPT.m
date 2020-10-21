@@ -11,8 +11,8 @@ clc;
 n = 200;
 
 %parameters
-delta = 0.25;
-beta = 0.1/log(n);
+delta = 0.35;
+beta = 0.14/log(n);
 
 %create an arbitrary graph
 %
@@ -21,7 +21,7 @@ for i = 1:n-1
     for j = i+1:n
         edgeCoin = binornd(1,2*log(n)/n);
         if edgeCoin ==1
-            G = addedge(G, i,j, 0.2);%/(2.5*log(n)));
+            G = addedge(G, i,j, 1);%/(2.5*log(n)));
         end
     end
 end
@@ -37,7 +37,7 @@ GCC = reordernodes(SG, order);
 
 
 %set initial conditions
-s = 20;
+s = 5;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
@@ -163,10 +163,10 @@ for i = 1:k
     e =randi(q2,1);
     %disp(e)
     
-    Ainc = zeros(nn,nn);
-    Ainc(Q2(e,1), Q2(e,2))= -A(Q2(e,1), Q2(e,2));
-    Ainc(Q2(e,2), Q2(e,1))= -A(Q2(e,2), Q2(e,1));
-    M = M + (I-X0-R0)*B*Ainc;
+    %Ainc = zeros(nn,nn);
+    %Ainc(Q2(e,1), Q2(e,2))= -A(Q2(e,1), Q2(e,2));
+    %Ainc(Q2(e,2), Q2(e,1))= -A(Q2(e,2), Q2(e,1));
+    %M = M + (I-X0-R0)*B*Ainc;
     %%sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
     choice = e;
     P2(i,:) = Q2(choice,:);
@@ -216,12 +216,11 @@ for i = 1:k
         end
     end
     
-    Ainc = zeros(nn,nn);
-    Ainc(Q3(choice,1), Q3(choice,2))= -A(Q3(choice,1), Q3(choice,2));
-    Ainc(Q3(choice,2), Q3(choice,1))= -A(Q3(choice,2), Q3(choice,1));
-    M = M + (I-X0-R0)*B*Ainc;
+    %Ainc = zeros(nn,nn);
+    %Ainc(Q3(choice,1), Q3(choice,2))= -A(Q3(choice,1), Q3(choice,2));
+    %Ainc(Q3(choice,2), Q3(choice,1))= -A(Q3(choice,2), Q3(choice,1));
+    %M = M + (I-X0-R0)*B*Ainc;
     
-    choice = e;
     P3(i,:) = Q3(choice,:);
     M(Q3(choice,1),Q3(choice,2)) = 0;
     M(Q3(choice,2),Q3(choice,1)) = 0;
