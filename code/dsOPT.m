@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 100;
+n = 200;
 
 %parameters
 delta = 0.25;
@@ -75,17 +75,21 @@ M = I - D + (I-X0-R0)*B*A;
 disp("%%%%%%%upper bound%%%%%%")
 disp("original:")
 sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
+originalRst = sigmahat;
 disp(sigmahat);
 
 % choose deleting set using the surrogate
 P=zeros(k,3);
+greedyRst = zeros(k+1,1);
+greedyRst(1) = originalRst;
 %disp("%%%%%%%%%%%%%%%%%%%%%%%%%")
 disp("greedy:")
-curInv = inv(I-M);
+initInv = inv(I-M);
+curInv = initInv;
 for i = 1:k
     %disp(i)
     %iterate over all remaining candidates
-    curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
+    curr = ones(1, nn)* (M+D-I)*(curInv*x0);
     minval=curr;
     % = 0;
     curLft = ones(1,nn) * (M+D-I);
@@ -126,6 +130,7 @@ for i = 1:k
     end
     %disp(choice);
     %disp(sigmahat);
+    greedyRst(i+1) = minval;
     P(i,:) = Q(choice,:);
     M(Q(choice,1),Q(choice,2)) = 0;
     M(Q(choice,2),Q(choice,1)) = 0;
@@ -144,10 +149,13 @@ disp(sigmahat);
 %to compare with random choices
 %disp("%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 disp("random choices:");
+randRst = zeros(k+1,1);
+randRst(1) = originalRst;
 q2=qsize;
 M = I - D + (I-X0-R0)*B*A;
 P2=zeros(k,3);
 Q2=edgelist(qidx, :);
+curInv = initInv;
 for i = 1:k
     %disp(i)
     %iterate over all remaining candidates
@@ -159,14 +167,26 @@ for i = 1:k
     Ainc(Q2(e,1), Q2(e,2))= -A(Q2(e,1), Q2(e,2));
     Ainc(Q2(e,2), Q2(e,1))= -A(Q2(e,2), Q2(e,1));
     M = M + (I-X0-R0)*B*Ainc;
-    %sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
+    %%sigmahat = ones(1, nn)* (Mt+D-I)*((I-Mt)\x0);
+    choice = e;
+    P2(i,:) = Q2(choice,:);
+    M(Q2(choice,1),Q2(choice,2)) = 0;
+    M(Q2(choice,2),Q2(choice,1)) = 0;
+    Aij = B(Q2(choice,1),Q2(choice,1))*A(Q2(choice,1),Q2(choice,2));
+    Aji = B(Q2(choice,2),Q2(choice,2))*A(Q2(choice,2),Q2(choice,1));
+    curLft(Q2(choice,2))= curLft(Q2(choice,2)) - (1-x0(Q2(choice,1))-r0(Q2(choice,1)))*Aij;
+    curLft(Q2(choice,1))= curLft(Q2(choice,1)) - (1-x0(Q2(choice,2))-r0(Q2(choice,2)))*Aji;
+    curInv = invUpdate(curInv, x0, r0, Q2(choice,1),Q2(choice,2),Aij, Aji);
+    
+    sigmahat = (ones(1,nn)* (M+D-I)) * (curInv * x0);
+    randRst(i+1)=sigmahat;
     
     %disp(sigmahat);
     P2(i,:) = Q2(e,:);
     Q2(e,:)=[];
     q2=q2-1;
 end
-sigmahat = ones(1,nn)* (M+D-I) * ((I-M)\x0);
+sigmahat = (ones(1,nn)* (M+D-I)) * (curInv * x0);
 disp(sigmahat);
 
 
@@ -174,11 +194,14 @@ disp(sigmahat);
 %%%% to reduce maximum degree by removing arbitrary edges incident to the
 %%%% maximum degree node
 disp("removing an edge incident to maximum degree nodes")
+maxDRst = zeros(k+1,1);
+maxDRst(1) = originalRst;
 q3=qsize;
 M = I - D + (I-X0-R0)*B*A;
 P3=zeros(k,3);
 Q3=edgelist(qidx, :);
 GCCCopy=GCC;
+curInv = initInv;
 for i = 1:k
     %disp(i)
     %iterate over all remaining candidates
@@ -194,9 +217,22 @@ for i = 1:k
     end
     
     Ainc = zeros(nn,nn);
-    Ainc(Q3(e,1), Q3(e,2))= -A(Q3(e,1), Q3(e,2));
-    Ainc(Q3(e,2), Q3(e,1))= -A(Q3(e,2), Q3(e,1));
+    Ainc(Q3(choice,1), Q3(choice,2))= -A(Q3(choice,1), Q3(choice,2));
+    Ainc(Q3(choice,2), Q3(choice,1))= -A(Q3(choice,2), Q3(choice,1));
     M = M + (I-X0-R0)*B*Ainc;
+    
+    choice = e;
+    P3(i,:) = Q3(choice,:);
+    M(Q3(choice,1),Q3(choice,2)) = 0;
+    M(Q3(choice,2),Q3(choice,1)) = 0;
+    Aij = B(Q3(choice,1),Q3(choice,1))*A(Q3(choice,1),Q3(choice,2));
+    Aji = B(Q3(choice,2),Q3(choice,2))*A(Q3(choice,2),Q3(choice,1));
+    curLft(Q3(choice,2))= curLft(Q3(choice,2)) - (1-x0(Q3(choice,1))-r0(Q3(choice,1)))*Aij;
+    curLft(Q3(choice,1))= curLft(Q3(choice,1)) - (1-x0(Q3(choice,2))-r0(Q3(choice,2)))*Aji;
+    curInv = invUpdate(curInv, x0, r0, Q3(choice,1),Q3(choice,2),Aij, Aji);
+    
+    sigmahat = (ones(1,nn)* (M+D-I)) * (curInv * x0);
+    maxDRst(i+1)=sigmahat;
     
     %disp(sigmahat);
     P3(i,:) = Q3(choice,:);
