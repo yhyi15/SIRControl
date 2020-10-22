@@ -30,6 +30,22 @@ G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
 %     end
 % end
 
+preEdges = rdEdges;
+
+while max(degree(G))>8
+    dmax=0;
+    for e=1:m
+        dupdate = max(degree(G, preEdges(e, 1)), degree(G, preEdges(e, 2)));
+        if dupdate>dmax
+            dmax=dupdate;
+            idx=e;
+        end
+    end
+    G = rmedge(G,preEdges(idx,1),preEdges(idx,2));
+    preEdges(idx,:)=[];
+    m=m-1;
+end
+
 % % take the (presumably) largest connected component
 % [bins, binsizes] = conncomp(G);
 % gccSize = max(binsizes);
@@ -41,20 +57,22 @@ G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
 GCC = G;
 gccSize = numnodes(GCC);
 maxd = max(degree(G));
-beta = 0.05;
-delta = 0.2;
+disp(maxd);
+beta = 0.5/(maxd);
+disp(beta);
+delta = 0.5;
 %set initial conditions
-s = 20;
+s = 5;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(S(i)) = rand();
+    x0(S(i)) = 1;
 end
 for i = 1:gccSize
-    r0(i) = rand()/20;
+    r0(i) = (1-x0(i))*rand()/20;
 end
 
 %input to the algorithm: an edge set, an integer k

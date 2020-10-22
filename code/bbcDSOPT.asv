@@ -8,7 +8,7 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 200;
+%n = 200;
 
 %parameters
 %delta = 0.35;
@@ -30,6 +30,20 @@ G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
 %     end
 % end
 
+preEdges = table2array(G.Edges);
+
+while max(degree(G))>8
+    dmax=0;
+    for e=1:m
+        dupdate = max(degree(G, preEdges(e, 1)), degree(G, preEdges(e, 2)));
+        if dupdate>dmax
+            dmax=dupdate;
+        end
+        G = rmedge(G,preEdges(idx,1),preEdges(idx,2));
+        preEdges(idx)=[];
+    end
+end
+
 % % take the (presumably) largest connected component
 % [bins, binsizes] = conncomp(G);
 % gccSize = max(binsizes);
@@ -41,17 +55,19 @@ G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
 GCC = G;
 gccSize = numnodes(GCC);
 maxd = max(degree(G));
-beta = 0.2/(maxd+1);
-delta = 0.2;
+disp(maxd);
+beta = 0.5/(maxd);
+disp(beta);
+delta = 0.5;
 %set initial conditions
-s = 120;
+s = 20;
 %choose s seeds
 S = randsample(gccSize,s);
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(S(i)) = 0.5*rand();
+    x0(S(i)) = rand();
 end
 for i = 1:gccSize
     r0(i) = rand()/20;
@@ -361,13 +377,13 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo_bbc_2.txt','w');
-outFile1 = fopen('results/dsGreedyResult_bbc_2.txt','w');
-outFile2 = fopen('results/dsRandResult_bbc_2.txt','w');
-outFile3 = fopen('results/dsMaxDResult_bbc_2.txt','w');
-outFile4 = fopen('results/dsGreedyResultReal_bbc_2.txt','w');
-outFile5 = fopen('results/dsRandResultReal_bbc_2.txt','w');
-outFile6 = fopen('results/dsMaxDResultReal_bbc_2.txt','w');
+outFile0 = fopen('results/basicInfo_bbc.txt','w');
+outFile1 = fopen('results/dsGreedyResult_bbc.txt','w');
+outFile2 = fopen('results/dsRandResult_bbc.txt','w');
+outFile3 = fopen('results/dsMaxDResult_bbc.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal_bbc.txt','w');
+outFile5 = fopen('results/dsRandResultReal_bbc.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal_bbc.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
 for i = 1:k+1
