@@ -44,7 +44,7 @@ S = randsample(gccSize,s);
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
 for i = 1: s
-    x0(S(i)) = 0.8 +0.2*rand();
+    x0(S(i)) = 0.8 +0.1*rand();
 end
 for i = 1:gccSize
     r0(i) = rand()/20;
@@ -362,7 +362,7 @@ outFile4 = fopen('results/dsGreedyResultReal_2.txt','w');
 outFile5 = fopen('results/dsRandResultReal_2.txt','w');
 outFile6 = fopen('results/dsMaxDResultReal_2.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
-fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
+fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, qsize, k, s);
 for i = 1:k+1
     fprintf(outFile1,'%5f\n', greedyRst(i));
     fprintf(outFile2,'%5f\n', randRst(i));

@@ -387,7 +387,7 @@ outFile4 = fopen('results/dsGreedyResultReal_bbc.txt','w');
 outFile5 = fopen('results/dsRandResultReal_bbc.txt','w');
 outFile6 = fopen('results/dsMaxDResultReal_bbc.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
-fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
+fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n%8f\n%8f\n',nn, m, qsize, k, s, beta, delta);
 for i = 1:k+1
     fprintf(outFile1,'%5f\n', greedyRst(i));
     fprintf(outFile2,'%5f\n', randRst(i));
@@ -396,6 +396,7 @@ for i = 1:k+1
     fprintf(outFile5,'%5f\n', randRstReal(i));
     fprintf(outFile6,'%5f\n', maxDRstReal(i));
 end
+fclose(outFile0);
 fclose(outFile1);
 fclose(outFile2);
 fclose(outFile3);

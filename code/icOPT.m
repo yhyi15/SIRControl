@@ -429,7 +429,7 @@ outFile2 = fopen('results/icRandResult.txt','w');
 outFile3 = fopen('results/icMaxDResult.txt','w');
 
 numRmv = (1:k+1)'-ones(k+1,1);
-fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, q, k, s);
+fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, qsize, k, s);
 for i = 1:k+1
     fprintf(outFile1,'%5f\n', greedyRst(i));
     fprintf(outFile2,'%5f\n', randRst(i));

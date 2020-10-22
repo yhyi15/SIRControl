@@ -1,0 +1,22 @@
+G = graph;
+blockSize = 100;
+numBlock = 5;
+
+inProb = 0.5;
+outProb = 0.45/(numBlock -1);
+n = 500;
+for  u =1:5
+    for v = 1:5
+        for i = 1:n-1
+            for j = i+1:n
+                if u == v
+                edgeCoin = binornd(1,2*inProb*log(n)/blockSize);
+                else
+                    edgeCoin = 
+                if edgeCoin ==1
+                    G = addedge(G, (u-1)*blockSize+i,(v-1)*blockSize+j, 1);%/(2.5*log(n)));
+                end
+            end
+        end
+    end
+end
