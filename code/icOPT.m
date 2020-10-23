@@ -8,11 +8,11 @@ clc;
 
 % read contact graph from file
 % G = readGraph(filename);
-n = 200;
+n = 500;
 
 %parameters
 delta = 0.25;
-beta = 0.1/log(n);
+beta = 0.3/log(n);
 
 %create an arbitrary graph
 %
@@ -21,7 +21,7 @@ for i = 1:n-1
     for j = i+1:n
         edgeCoin = binornd(1,2*log(n)/n);
         if edgeCoin ==1
-            G = addedge(G, i,j, (0.9 + 0.1*rand())/(2.5*log(n)));
+            G = addedge(G, i,j, 1/(2.5*log(n)));
         end
     end
 end
@@ -77,7 +77,7 @@ M = I - D + (I-X0-R0)*B*A;
 %calculating original expected infections
 %randomly pick a node from the network
 eps = 0.2;
-rounds = 0.1*nn*log(nn)/(eps^2);
+rounds = 0.01*nn*log(nn)/(eps^2);
 
 count = 0;
 
@@ -423,10 +423,10 @@ disp("maxD after removal:")
 disp(infect-s);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo.txt','w');
-outFile1 = fopen('results/icGreedyResult.txt','w');
-outFile2 = fopen('results/icRandResult.txt','w');
-outFile3 = fopen('results/icMaxDResult.txt','w');
+outFile0 = fopen('results/basicInfo_3.txt','w');
+outFile1 = fopen('results/icGreedyResult_3.txt','w');
+outFile2 = fopen('results/icRandResult_3.txt','w');
+outFile3 = fopen('results/icMaxDResult_3.txt','w');
 
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, qsize, k, s);
