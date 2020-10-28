@@ -6,7 +6,8 @@ n = 500;
 %G = graph;
 for i = 1:n-1
     for j = i+1:n
-        edgeCoin = binornd(1,1.75*log(n/5)/n);
+        %edgeCoin = binornd(1,1.75*log(n/5)/n);
+        edgeCoin = binornd(1,0.8*log(n)/n);
         if edgeCoin ==1
             G = addedge(G, i,j, 1);%/(2.5*log(n)));
         end

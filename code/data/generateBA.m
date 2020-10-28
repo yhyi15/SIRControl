@@ -1,7 +1,7 @@
 clear;
 clc;
-N=500;
-m=3;
+N=200;
+m=2;
 m0=4;
 
 A=BAGraph(N,m,m0);

@@ -6,7 +6,7 @@
 clear;
 clc;
 
-rdEdges = readmatrix('data/randGraph.txt');
+rdEdges = readmatrix('data/BBC_contact_network.csv');
 
 %create an arbitrary graph
 %
@@ -50,16 +50,16 @@ GCC = G;
 gccSize = numnodes(GCC);
 maxd = max(degree(G));
 disp(maxd);
-beta= 1/(maxd+1);
+beta = 1/(maxd+1);
 disp(beta);
 delta = 1;
 
 
 %set initial conditions
-s = 3;
+s = 5;
 %choose s seeds
-S = randsample(gccSize,s);
-%S = [442,39,129,307,370]';
+%S = randsample(gccSize,s);
+S = [442,39,129,307,370]';
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
@@ -82,7 +82,7 @@ qidx = randsample(m, q);
 Q = edgelist(qidx, :);
 %k = floor(qsize/3);
 %k =150;
-k=30;
+k=220;
 
 %matrices
 A = zeros(nn+1,nn+1);
@@ -196,8 +196,8 @@ for i = 1:k
             cur = stack(top);
             if cur == nn+1
                 succ=1;
-                cur_count=cur_count+1;
-                break;
+                %cur_count=cur_count+1;
+                %break;
             end
             top = top -1;
             %if activated(cur)==0
@@ -219,6 +219,9 @@ for i = 1:k
                 end
                 %activated(cur)=1;
             %end
+        end
+        if succ ==1
+            cur_count = cur_count+1;
         end
 %         for iter_c = 1:s
 %             if activated(S(iter_c))==1
@@ -492,10 +495,10 @@ disp("maxD after removal:")
 disp(infect-s);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo_BBC_21.txt','w');
-outFile1 = fopen('results/icGreedyResult_BBC_21.txt','w');
-outFile2 = fopen('results/icRandResult_BBC_21.txt','w');
-outFile3 = fopen('results/icMaxDResult_BBC_21.txt','w');
+outFile0 = fopen('results/basicInfo_BBC_11.txt','w');
+outFile1 = fopen('results/icGreedyResult_BBC_11.txt','w');
+outFile2 = fopen('results/icRandResult_BBC_11.txt','w');
+outFile3 = fopen('results/icMaxDResult_BBC_11.txt','w');
 
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, qsize, k, s);

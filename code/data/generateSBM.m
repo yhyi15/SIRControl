@@ -5,8 +5,8 @@ G = graph;
 blockSize = 100;
 numBlock = 5;
 
-inProb = 0.5;
-outProb = 0.4/(numBlock -1);
+inProb = 0.5*0.5;
+outProb = 0.4*0.5/(numBlock -1);
 n = 100;
 for  u =1:5
     for v = 1:5

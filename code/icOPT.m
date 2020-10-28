@@ -19,9 +19,9 @@ beta = 0.3/log(n);
 G = graph;
 for i = 1:n-1
     for j = i+1:n
-        edgeCoin = binornd(1,2*log(n)/n);
+        edgeCoin = binornd(1,0.8*log(n)/n);
         if edgeCoin ==1
-            G = addedge(G, i,j, 1/(2.5*log(n)));
+            G = addedge(G, i,j, 1/(log(n)));
         end
     end
 end
@@ -60,7 +60,7 @@ qsize=floor(m/2);
 q=qsize;
 qidx = randsample(m, q);
 Q = edgelist(qidx, :);
-k = floor(qsize/2);
+k = floor(qsize/3);
 
 %matrices
 A = adjacency(GCC,'weighted');
@@ -77,7 +77,7 @@ M = I - D + (I-X0-R0)*B*A;
 %calculating original expected infections
 %randomly pick a node from the network
 eps = 0.2;
-rounds = 0.01*nn*log(nn)/(eps^2);
+rounds = 0.1*nn*log(nn)/(eps^2);
 
 count = 0;
 
@@ -182,6 +182,10 @@ for i = 1:k
                 break;
             end
         end
+        
+        if succ ==0
+            continue;
+        end
 
         for e =1:q
             sn = Q(e,1);
@@ -204,7 +208,7 @@ for i = 1:k
                     for iter_h = 1:size(nb_h,1)
                         %push
                         t_h = nb_h(iter_h);
-                        if 1>0 %(~((cur_h==sn && t_h == tn) || (cur_h==tn && t_h == sn)))
+                        if (~((cur_h==sn && t_h == tn) || (cur_h==tn && t_h == sn)))
                             %push
                             top_h = top_h+1;
                             stack_h(top_h) = t_h;
@@ -225,7 +229,7 @@ for i = 1:k
     %disp(cur_count);
     [minv, idx] = min(count);
     %disp(minv);
-    P(k,:) = Q(idx,:);
+    P(i,:) = Q(idx,:);
     Ggreedy = rmedge(Ggreedy,Q(idx,1),Q(idx,2));
     Q(idx,:)=[];
     q=q-1;

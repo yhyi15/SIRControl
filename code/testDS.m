@@ -21,13 +21,14 @@ GCC = G;
 gccSize = numnodes(GCC);
 maxd = max(degree(G));
 disp(maxd);
-beta = 0.5/(0.68*maxd);
+beta = 0.25/(maxd+1);
 disp(beta);
-delta = 0.5;
+delta = 0.25;
 %set initial conditions
 s = 5;
 %choose s seeds
-S = randsample(gccSize,s);
+%S = randsample(gccSize,s);
+S = [16, 42, 6, 28, 3];
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
@@ -51,7 +52,7 @@ Q = edgelist(qidx, :);
 k = floor(qsize/3);
 %matrices
 A = adjacency(GCC,'weighted');
-betaList = 0.95*beta* ones(nn,1);
+betaList = beta* ones(nn,1);
 deltaList = delta * ones(nn,1);
 B = diag(betaList);
 D = diag(deltaList);
@@ -190,8 +191,8 @@ disp(sigma);
 
 
 %%%%%%%%%%%%%%%%%%%%%% actual %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-epochs = 10000;
-rounds =1000;
+epochs = 15000;
+rounds =2000;
 x=x0;
 r=r0;
 prob = B*A2;

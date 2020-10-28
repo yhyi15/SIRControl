@@ -16,15 +16,17 @@ x = 0:1:k-1;
 plot(x,greedy,'LineWidth',3);
 
 hold on 
-plot(x,rand_up,'LineWidth',2);
+plot(x,rand_up);
 
 hold on 
-plot(x,maxd,'color',[0.6350    0.0780    0.1840]);
+plot(x,maxd,'LineWidth',2, 'color', [0.6350    0.0780    0.1840]);
 
 set(gca,'FontSize',14,'FontWeight','bold');
 xlabel('k','FontSize',14,'FontWeight','bold');
 ylabel('Expected Infections','FontSize',14,'FontWeight','bold')
-xlim([-1 17]);
-ylim([2 7.5]);
+xlim([(min(x)-1) (max(x)+1)]);
+ylim([(min(greedy)-0.3) (max(greedy)+0.3)]);
+
+title('D-SIR Accuracy','FontSize',14);
 
 legend('Upper','D-SIR','G-SIR');
