@@ -1,13 +1,13 @@
-fileID = fopen('results/icGreedyResult_BBC_21.txt','r');
+fileID = fopen('results/icGreedyResult_BBC_23.txt','r');
 formatSpec = '%f';
 greedy = fscanf(fileID,formatSpec);
 
-fileID = fopen('results/icRandResult_BBC_21.txt','r');
+fileID = fopen('results/icRandResult_BBC_23.txt','r');
 formatSpec = '%f';
 rand_up = fscanf(fileID,formatSpec);
 
 
-fileID = fopen('results/icMaxDResult_BBC_21.txt','r');
+fileID = fopen('results/icGreedyResultRho_BBC_23.txt','r');
 formatSpec = '%f';
 maxd = fscanf(fileID,formatSpec);
 
@@ -27,8 +27,8 @@ plot(x,rand_up);
 set(gca,'FontSize',14,'FontWeight','bold');
 xlabel('k','FontSize',14,'FontWeight','bold');
 ylabel('Expected Number of Infections','FontSize',14,'FontWeight','bold');
-xlim([(min(x)-10) (max(x)+10)]);
-ylim([(min(greedy-5)) (max(greedy)+5)]);
-title('Haslemere network w/o Preprocessing', 'FontSize',14);
+xlim([(min(x)-1) (max(x)+1)]);
+ylim([(min(greedy-1)) (max(greedy)+1)]);
+title('ER Network', 'FontSize',14);
 
-legend('Greedy','Max-Degree','Random');
+legend('Greedy','GreedyRho','Random');

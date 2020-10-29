@@ -408,7 +408,7 @@ for i = 1:k
     disp(strcat("deleting the ",num2str(i),"-th edge"));
     %%%%%%%
     dmax = 0;
-    for e = 1:q
+    for e = 1:q3
         dupdate = max(degree(GmaxD, Q3(e, 1)), degree(GmaxD, Q3(e, 2)));
         %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         if dupdate>dmax

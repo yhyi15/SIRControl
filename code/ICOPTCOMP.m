@@ -6,7 +6,7 @@
 clear;
 clc;
 
-rdEdges = readmatrix('data/randGraph.txt');
+rdEdges = readmatrix('data/BBC_contact_network.csv');
 
 %create an arbitrary graph
 %
@@ -24,19 +24,19 @@ G = graph(rdEdges(:,1),rdEdges(:,2),ones(m,1),n);
 
 preEdges = rdEdges;
 
-% while max(degree(G))>8
-%     dmax=0;
-%     for e=1:m
-%         dupdate = max(degree(G, preEdges(e, 1)), degree(G, preEdges(e, 2)));
-%         if dupdate>dmax
-%             dmax=dupdate;
-%             idx=e;
-%         end
-%     end
-%     G = rmedge(G,preEdges(idx,1),preEdges(idx,2));
-%     preEdges(idx,:)=[];
-%     m=m-1;
-% end
+while max(degree(G))>8
+    dmax=0;
+    for e=1:m
+        dupdate = max(degree(G, preEdges(e, 1)), degree(G, preEdges(e, 2)));
+        if dupdate>dmax
+            dmax=dupdate;
+            idx=e;
+        end
+    end
+    G = rmedge(G,preEdges(idx,1),preEdges(idx,2));
+    preEdges(idx,:)=[];
+    m=m-1;
+end
 
 % % take the (presumably) largest connected component
 % [bins, binsizes] = conncomp(G);
@@ -50,16 +50,16 @@ GCC = G;
 gccSize = numnodes(GCC);
 maxd = max(degree(G));
 disp(maxd);
-beta= 1/(maxd+1);
+beta = 1/(maxd+1);
 disp(beta);
 delta = 1;
 
 
 %set initial conditions
-s = 3;
+s = 5;
 %choose s seeds
-S = randsample(gccSize,s);
-%S = [442,39,129,307,370]';
+%S = randsample(gccSize,s);
+S = [442,39,129,307,370]';
 % initiate x and r
 x0 = zeros(gccSize, 1);
 r0 = zeros(gccSize, 1);
@@ -78,15 +78,20 @@ nn = numnodes(GCC);
 constraint = 2;
 qsize=floor(m/2);
 q=qsize;
-qidx = randsample(m, q);
+%qidx = randsample(m, q);
+qidx = readmatrix('data/edgeSet.txt');
 Q = edgelist(qidx, :);
-%k = floor(qsize/3);
-k =210;
-%k=30;
+
+
+
+%k = floor(qsize/2);
+k=210;
+%k =150;
+%k=220;
 
 %matrices
 A = zeros(nn+1,nn+1);
-A(1:nn,1:nn) = 1.11/log(nn)*adjacency(GCC,'weighted');
+A(1:nn,1:nn) = 1.1/log(nn)*adjacency(GCC,'weighted');
 for sidx = 1:s
     A(nn+1, S(sidx))=1;
     A(S(sidx), nn+1)=1;
@@ -113,6 +118,7 @@ disp(rounds);
 
 P = zeros(k,3);
 Ggreedy = graph(A);
+GgreedyRho = graph(A);
 for sidx =1:s
     Ggreedy = addedge(Ggreedy, nn+1, S(sidx),1);
 end
@@ -164,6 +170,8 @@ infect = icEval2(Ggreedy, nn, rounds,S ,s, A);
 disp("before removal:")
 %disp(cur_count);
 disp(infect-s);
+
+
 
 originalRst = infect -s;
 
@@ -345,6 +353,119 @@ disp("greedy after removal:")
 disp(infect-s);
 
 
+% greedyRstRho = zeros(k+1,1);
+% greedyRstRho(1) = originalRst;
+% 
+% Q4=edgelist(qidx, :);
+% q4=qsize;
+% 
+% disp("%%%%%%%%%%%%%%% Greedy RHO%%%%%%%%%%%%%%%%%%%%%");
+% disp(strcat("k: ", num2str(k)));
+% for i = 1:k
+%     disp(strcat("deleting the ",num2str(i),"-th edge"));
+%     cur_count = 0;
+%     count = zeros(q,1);
+%     round = 1;
+%     %numcyc = 0;
+%     edgelistTemp = table2array(GgreedyRho.Edges);
+%     m = numedges(GgreedyRho);
+%     while round<rounds
+%         succ = 0;
+%         %Ghat = graph;
+%         %contEdge = zeros(nn,2);
+%         %contNumEdges = 0;
+%         %if(mod(round,100)==0)
+%         %    disp(round/rounds);
+%         %end
+%         
+%         terminal = randsample(nn,1);
+%         Ghat = graph;
+%         Ghat = addnode(Ghat, nn);
+%         for ed =1: m
+%             sst = edgelistTemp(ed,1);
+%             ttt = edgelistTemp(ed,2);
+%             contCoin2 = rand();
+%             if (contCoin2<=A(sst,ttt) && sst~=nn+1 && ttt~=nn+1 )
+%                 Ghat = addedge(Ghat, sst, ttt);
+%             end
+%         end
+%         [bins, binsizes] = conncomp(Ghat);
+%         if max(binsizes)>=9*log(nn)*25
+%             continue;
+%         end
+%         collision = 0;
+%         for si = 1:s-1
+%             for sj = si+1:s
+%                 if bins(S(si))==bins(S(sj))
+%                     collision = 1;
+%                 end
+%             end
+%         end
+%         if collision ==1
+%             continue;
+%         end
+%         round =round+1;
+%         GhatIdx = find(bins==bins(terminal));
+%         %Ghat = subgraph(Ghat, GhatIdx);
+%         nhat = numnodes(Ghat);
+%         mhat = numedges(Ghat);
+%         edgelisthat = table2array(Ghat.Edges);
+%         Ghhat=graph;
+%         for editer = 1:mhat
+%             if bins(edgelisthat(editer,1))== bins(terminal)
+%                 Ghhat = addedge(Ghhat, edgelisthat(editer,1), edgelisthat(editer,2));
+%             end
+%         end
+%         Ghat = Ghhat;
+%         %disp("cycles:")
+%         %disp(mhat - nhat+1);
+%         
+%         if nhat<=1 || mhat >= nhat
+%            succ=0;
+%            continue;
+%         end
+%         for ssidx =1:s
+%             if bins(S(ssidx))==bins(terminal)
+%                 succ =1;
+%             end
+%             Ghat = addedge(Ghat, nn+1, S(ssidx));
+%         end
+%         if succ ==0
+%             continue;
+%         end
+% 
+%         cur_count = cur_count+1;
+%         [path , dis]= shortestpath(Ghat, terminal, nn+1, 'Method','unweighted');
+%         for e =1:q4
+%             %Sset = S;
+%             sn = Q4(e,1);
+%             tn = Q4(e,2);
+%             reached = 1;
+%             for einp = 1:dis
+%                 if ((path(einp) == sn && path(einp+1)== tn)...
+%                         ||(path(einp) == tn && path(einp+1)== sn))
+%                     reached = 0;
+%                 end
+%             end
+%             count(e)=count(e)+reached;
+%         end
+%     end
+%     %disp("%%%%%%%%%%%%%%%")
+%     %disp(cur_count);
+%     [minv, idx] = min(count);
+%     %disp(size(count));
+%     %disp(numcyc);
+%     %disp(minv);
+%     P(i,:) = Q4(idx,:);
+%     GgreedyRho = rmedge(GgreedyRho,Q4(idx,1),Q4(idx,2));
+%     Q4(idx,:)=[];
+%     q4=q4-1;
+%     
+%     greedyRstRho(i+1) = icEval2(GgreedyRho, nn, rounds,S ,s, A)-s;
+%     disp(greedyRstRho(i+1));
+% end
+% 
+
 randRst = zeros(k+1,1);
 randRst(1) = originalRst;
 
@@ -430,7 +551,7 @@ for i = 1:k
     disp(strcat("deleting the ",num2str(i),"-th edge"));
     %%%%%%%
     dmax = 0;
-    for e = 1:q
+    for e = 1:q3
         dupdate = max(degree(GmaxD, Q3(e, 1)), degree(GmaxD, Q3(e, 2)));
         %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         if dupdate>dmax
@@ -493,9 +614,10 @@ disp(infect-s);
 
 disp("printing results")
 outFile0 = fopen('results/basicInfo_BBC_21.txt','w');
-outFile1 = fopen('results/icGreedyResult_BBC_21.txt','w');
-outFile2 = fopen('results/icRandResult_BBC_21.txt','w');
-outFile3 = fopen('results/icMaxDResult_BBC_21.txt','w');
+outFile1 = fopen('results/icGreedyResult_BBC_23.txt','w');
+outFile2 = fopen('results/icRandResult_BBC_23.txt','w');
+outFile3 = fopen('results/icMaxDResult_BBC_23.txt','w');
+%outFile4 = fopen('results/icGreedyResultRho_BBC_23.txt','w');
 
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, qsize, k, s);
@@ -503,9 +625,10 @@ for i = 1:k+1
     fprintf(outFile1,'%5f\n', greedyRst(i));
     fprintf(outFile2,'%5f\n', randRst(i));
     fprintf(outFile3,'%5f\n', maxDRst(i));
+    %fprintf(outFile4,'%5f\n', greedyRstRho(i));
 end
 fclose(outFile1);
 fclose(outFile2);
 fclose(outFile3);
-disp("finished writing")    
+disp("finished writing");    
 
