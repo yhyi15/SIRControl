@@ -85,7 +85,7 @@ Q = edgelist(qidx, :);
 
 
 %k = floor(qsize/2);
-k=210;
+k=220;
 %k =150;
 %k=220;
 

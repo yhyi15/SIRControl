@@ -207,7 +207,7 @@ for i = 1:k
     %iterate over all remaining candidates
     %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
     dmax = 0;
-    for e = 1:q
+    for e = 1:q3
         dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         if dupdate>dmax

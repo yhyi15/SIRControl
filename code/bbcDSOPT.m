@@ -232,7 +232,7 @@ for i = 1:k
     %iterate over all remaining candidates
     %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
     dmax = 0;
-    for e = 1:q
+    for e = 1:q3
         dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         if dupdate>dmax
@@ -379,13 +379,13 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo_bbc.txt','w');
-outFile1 = fopen('results/dsGreedyResult_bbc.txt','w');
-outFile2 = fopen('results/dsRandResult_bbc.txt','w');
-outFile3 = fopen('results/dsMaxDResult_bbc.txt','w');
-outFile4 = fopen('results/dsGreedyResultReal_bbc.txt','w');
-outFile5 = fopen('results/dsRandResultReal_bbc.txt','w');
-outFile6 = fopen('results/dsMaxDResultReal_bbc.txt','w');
+outFile0 = fopen('results/basicInfo_bbc_13.txt','w');
+outFile1 = fopen('results/dsGreedyResult_bbc_13.txt','w');
+outFile2 = fopen('results/dsRandResult_bbc_13.txt','w');
+outFile3 = fopen('results/dsMaxDResult_bbc_13.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal_bbc_13.txt','w');
+outFile5 = fopen('results/dsRandResultReal_bbc_13.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal_bbc_13.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n%8f\n%8f\n',nn, m, qsize, k, s, beta, delta);
 for i = 1:k+1

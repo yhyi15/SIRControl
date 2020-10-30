@@ -207,7 +207,7 @@ for i = 1:k
     %iterate over all remaining candidates
     %curr = ones(1, nn)* (M+D-I)*((I-M)\x0);
     dmax = 0;
-    for e = 1:q
+    for e = 1:q3
         dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         %dupdate = max(degree(GCCCopy, Q3(e, 1)), degree(GCCCopy, Q3(e, 2)));
         if dupdate>dmax
@@ -354,13 +354,13 @@ disp("degree reducing actural:")
 disp(sigma);
 
 disp("printing results")
-outFile0 = fopen('results/basicInfo_2.txt','w');
-outFile1 = fopen('results/dsGreedyResult_2.txt','w');
-outFile2 = fopen('results/dsRandResult_2.txt','w');
-outFile3 = fopen('results/dsMaxDResult_2.txt','w');
-outFile4 = fopen('results/dsGreedyResultReal_2.txt','w');
-outFile5 = fopen('results/dsRandResultReal_2.txt','w');
-outFile6 = fopen('results/dsMaxDResultReal_2.txt','w');
+outFile0 = fopen('results/basicInfo_12.txt','w');
+outFile1 = fopen('results/dsGreedyResult_12.txt','w');
+outFile2 = fopen('results/dsRandResult_12.txt','w');
+outFile3 = fopen('results/dsMaxDResult_12.txt','w');
+outFile4 = fopen('results/dsGreedyResultReal_12.txt','w');
+outFile5 = fopen('results/dsRandResultReal_12.txt','w');
+outFile6 = fopen('results/dsMaxDResultReal_12.txt','w');
 numRmv = (1:k+1)'-ones(k+1,1);
 fprintf(outFile0, '%d\n%d\n%d\n%d\n%d\n',nn, m, qsize, k, s);
 for i = 1:k+1
